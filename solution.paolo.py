@@ -7,15 +7,7 @@ def loadInput(inputPath):
         productionCurve = list(map(int, file.readline().strip().split()))
         lines = [line.rstrip() for line in file]
         blocks = [Block(i, int(b.split()[0]), int(b.split()[1]), int(b.split()[2])) for i, b in enumerate(lines)]
-
-        # tasks: list[Block] = []
-        # # tasks = []
-        # for id, line in enumerate(file):
-        #     task: Block = list(map(int,line.strip().split()))
-        #     # task = list(map(int,line.strip().split()))
-        #     tasks.append(Block(id, task[0], task[1], task[2]))
-        #     # tasks.append(task)
-        # tasks.sort(key=lambda t: t.deadline)
+        # blocks.sort(key=lambda t: t.deadline)
         print(blocks)
     return productionCurve, blocks
 

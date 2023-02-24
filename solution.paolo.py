@@ -5,16 +5,19 @@ from Block import Block
 def loadInput(inputPath):
     with open(inputPath) as file:
         productionCurve = list(map(int, file.readline().strip().split()))
-        tasks: list[Block] = []
-        # tasks = []
-        for id, line in enumerate(file):
-            task: Block = list(map(int,line.strip().split()))
-            # task = list(map(int,line.strip().split()))
-            tasks.append(Block(id, task[0], task[1], task[2]))
-            # tasks.append(task)
-        tasks.sort(key=lambda t: t.deadline)
-        print(tasks)
-    return productionCurve, tasks
+        lines = [line.rstrip() for line in file]
+        blocks = [Block(i, int(b.split()[0]), int(b.split()[1]), int(b.split()[2])) for i, b in enumerate(lines)]
+
+        # tasks: list[Block] = []
+        # # tasks = []
+        # for id, line in enumerate(file):
+        #     task: Block = list(map(int,line.strip().split()))
+        #     # task = list(map(int,line.strip().split()))
+        #     tasks.append(Block(id, task[0], task[1], task[2]))
+        #     # tasks.append(task)
+        # tasks.sort(key=lambda t: t.deadline)
+        print(blocks)
+    return productionCurve, blocks
 
 def getEnergyProductionInRange(productionCurve, startRange, endRange):
     return sum(productionCurve[startRange:endRange])
@@ -74,8 +77,10 @@ def scheduleTasks(productionCurve, tasks: list[Block]):
 def writeOutput(outputPath, taskIds):
     with open(outputPath, "w") as f:
         for taskId in taskIds:
-            f.write(" ".join(str(id) for id in taskId))
-            f.write("\n")
+            if taskId is None:
+                f.write("\n")
+            else:
+                f.write("".join(str(id) for id in taskId) + "\n")
 
 
 if __name__ == '__main__':

@@ -1,4 +1,5 @@
 import itertools
+import sys
 import numpy as np
 from Block import Block
     
@@ -8,7 +9,6 @@ def loadInput(inputPath):
         lines = [line.rstrip() for line in file]
         blocks = [Block(i, int(b.split()[0]), int(b.split()[1]), int(b.split()[2])) for i, b in enumerate(lines)]
         # blocks.sort(key=lambda t: t.deadline)
-        print(blocks)
     return productionCurve, blocks
 
 def getEnergyProductionInRange(productionCurve, startRange, endRange):
@@ -29,7 +29,14 @@ def getTasksCombinations(tasks: list[Block], maxTasks):
         for combination in itertools.combinations(tasks, i):
             yield combination
 
-
+# combinazioni istantanee inaziale
+# per ogni combinazione vado avanti 
+# genero le successive combinazioni tenendo conto dei task usati, e di quelli sempre attivi
+# la precisione è data dalla decisione di scarto 
+#
+#
+# algoritmo di deframmentazione dei dischi
+# coprire la curva alla meno peggio e poi ripasso e sosituisco 
 def getBestTasksCombinations(productionCurve, tasksCombinations, startRange, endRange):
     # giusto per partire uso che l'energia residua è infinita in negativo per comoditá
     bestEnergyResidual = -np.inf
@@ -66,18 +73,46 @@ def scheduleTasks(productionCurve, tasks: list[Block]):
             taskIds.append([])
     return taskIds
 
-def writeOutput(outputPath, taskIds):
+def writeOutput(outputPath,taskIds: list[Block], prod):
     with open(outputPath, "w") as f:
-        for taskId in taskIds:
-            if taskId is None:
-                f.write("\n")
-            else:
-                f.write("".join(str(id) for id in taskId) + "\n")
+        f.write("\n".join(str(task.id) for task in taskIds))
+        print(len(taskIds))
+        print(len(prod))
 
+        for i in range(len(taskIds),len(prod)):
+            f.write("\n")    
+         
+                
+def simpleSort(blockA: Block):
+    return blockA.deadline
 
+def simpleSorting(production, blocks: list[Block]):
+    allocatedBlocks: list[Block] = []
+    for i in range(len(production)):
+        for blok in blocks:
+            if blok.deadline > i + blok.runtime:
+                blocks.remove(blok)
+            else: 
+                break
+        if len(blocks) != 0:
+            allocatedBlocks.append(blocks[0])
+            blocks.remove(blocks[0])
+            i += allocatedBlocks[0].runtime -1
+        else:
+            break
+    return allocatedBlocks    
+
+    
 if __name__ == '__main__':
-    inputPath = "input-generated.txt"
-    outputPath = "output-generated.paolo.txt"
+    inputPath = sys.argv[1]
+    outputPath = sys.argv[2]
+    # inputPath = "inputs/gamma.txt"
+    # outputPath = "outputs/gamma.txt"
     production, tasks = loadInput(inputPath)
-    taskIds = scheduleTasks(production, tasks)
-    writeOutput(outputPath, taskIds)
+    print(tasks[1199].deadline)
+    tasks.sort(key=lambda t: t.deadline)
+    tasks = simpleSorting(production, tasks)
+    tasks = tasks[:len(production)]
+    # taskIds = scheduleTasks(production, tasks)
+    # writeOutput(outputPath, taskIds)
+    writeOutput(outputPath, tasks, production)

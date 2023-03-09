@@ -4,14 +4,14 @@ from AllocatedBlock import AllocatedBlock
 import matplotlib.pyplot as plt
 import numpy as np
 
-inputFile = open("input-generated.txt", "r")
+inputFile = open("inputs/alfa.txt", "r")
 curve =  [int(i) for i in inputFile.readline().split()]
 lines = [line.rstrip() for line in inputFile]
 blocks = [Block(i, int(b.split()[0]), int(b.split()[1]), int(b.split()[2])) for i, b in enumerate(lines)]
 
 
 try:
-    outputFile = open("output-generated.paolo.txt", "r")
+    outputFile = open("outputs/alfa.txt", "r")
     lines = [line.rstrip() for line in outputFile]
 
     schedule = []

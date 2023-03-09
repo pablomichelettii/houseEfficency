@@ -90,16 +90,16 @@ def simpleSorting(production, blocks: list[Block]):
     allocatedBlocks: list[Block] = []
     for i in range(len(production)):
         for blok in blocks:
-            if blok.deadline > i + blok.runtime:
+            if blok.deadline <= i + blok.runtime:
                 blocks.remove(blok)
-            else: 
+                continue
+            if blok.cost < production[i]:
                 break
-        if len(blocks) != 0:
-            allocatedBlocks.append(blocks[0])
-            blocks.remove(blocks[0])
-            i += allocatedBlocks[0].runtime -1
-        else:
+        if len(blocks) == 0:
             break
+        allocatedBlocks.append(blocks[0])
+        blocks.remove(blocks[0])
+        i += allocatedBlocks[0].runtime -1
     return allocatedBlocks    
 
     

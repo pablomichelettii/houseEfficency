@@ -67,7 +67,7 @@ def scheduleTasks(productionCurve, tasks: list[Block]):
                 bestTasksCombination = taskCombination
         if bestTasksCombination is not None:
             taskIds.append([task.id for task in bestTasksCombination])
-            for task in bestTasksCombination:
+            for task in b+estTasksCombination:
                 tasks.remove(task)
         else:
             taskIds.append([])
@@ -88,16 +88,27 @@ def simpleSort(blockA: Block):
 
 def simpleSorting(production, blocks: list[Block]):
     allocatedBlocks: list[Block] = []
+    consumed = [0 for _ in range(len(production))]
+
     for i in range(len(production)):
         for blok in blocks:
             if blok.deadline <= i + blok.runtime:
                 blocks.remove(blok)
                 continue
-            if blok.cost < production[i]:
+            
+            if blok.cost < production[i] + consumed[i]:
                 break
+        
         if len(blocks) == 0:
             break
+        
         allocatedBlocks.append(blocks[0])
+
+        for j in range(i, i + blocks[0].runtime):
+            if j > len(consumed) - 1:
+                break
+            consumed[j] += blocks[0].cost
+
         blocks.remove(blocks[0])
         i += allocatedBlocks[0].runtime -1
     return allocatedBlocks    
@@ -109,7 +120,6 @@ if __name__ == '__main__':
     # inputPath = "inputs/gamma.txt"
     # outputPath = "outputs/gamma.txt"
     production, tasks = loadInput(inputPath)
-    print(tasks[1199].deadline)
     tasks.sort(key=lambda t: t.deadline)
     tasks = simpleSorting(production, tasks)
     tasks = tasks[:len(production)]

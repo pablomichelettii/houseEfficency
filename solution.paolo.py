@@ -67,7 +67,7 @@ def scheduleTasks(productionCurve, tasks: list[Block]):
                 bestTasksCombination = taskCombination
         if bestTasksCombination is not None:
             taskIds.append([task.id for task in bestTasksCombination])
-            for task in b+estTasksCombination:
+            for task in bestTasksCombination:
                 tasks.remove(task)
         else:
             taskIds.append([])
@@ -75,7 +75,8 @@ def scheduleTasks(productionCurve, tasks: list[Block]):
 
 def writeOutput(outputPath,taskIds: list[Block], prod):
     with open(outputPath, "w") as f:
-        f.write("\n".join(str(task.id) for task in taskIds))
+        f.write("\n".join(str(task.id) if task != None else "" for task in taskIds))
+        
         print(len(taskIds))
         print(len(prod))
 
@@ -91,18 +92,27 @@ def simpleSorting(production, blocks: list[Block]):
     consumed = [0 for _ in range(len(production))]
 
     for i in range(len(production)):
-        for blok in blocks:
-            if blok.deadline <= i + blok.runtime:
-                blocks.remove(blok)
+        selectedBlock:Block = None
+        for block in blocks:
+            if block.deadline <= i + block.runtime:
+                blocks.remove(block)
                 continue
-            
-            if blok.cost < production[i] + consumed[i]:
+
+            if block.cost + consumed[i] < production[i]:
+                selectedBlock = block
                 break
-        
-        if len(blocks) == 0:
-            break
-        
-        allocatedBlocks.append(blocks[0])
+
+        allocatedBlocks.append(selectedBlock)
+
+        if selectedBlock == None:
+            continue
+
+        print(i)
+        print(f"cost: {selectedBlock.cost}")
+        print(f"duration: {selectedBlock.runtime}")
+        print(f"consumo: {consumed[i]}")
+        print(f"production: {production[i]}")
+        print()
 
         for j in range(i, i + blocks[0].runtime):
             if j > len(consumed) - 1:
@@ -110,15 +120,14 @@ def simpleSorting(production, blocks: list[Block]):
             consumed[j] += blocks[0].cost
 
         blocks.remove(blocks[0])
-        i += allocatedBlocks[0].runtime -1
     return allocatedBlocks    
 
     
 if __name__ == '__main__':
     inputPath = sys.argv[1]
     outputPath = sys.argv[2]
-    # inputPath = "inputs/gamma.txt"
-    # outputPath = "outputs/gamma.txt"
+    # inputPath = "/home/daniel/Desktop/codenauts-backend/solvers/fritts-solver/houseEfficency/inputs/alfa.txt"
+    # outputPath = "/home/daniel/Desktop/codenauts-backend/solvers/fritts-solver/houseEfficency/outputs/alfa.txt"
     production, tasks = loadInput(inputPath)
     tasks.sort(key=lambda t: t.deadline)
     tasks = simpleSorting(production, tasks)

@@ -1,41 +1,71 @@
+import sys
 from Block import Block
-
-inputFile = open("input-generated.txt", "r")
-curve =  [int(i) for i in inputFile.readline().split()]
-lines = [line.rstrip() for line in inputFile]
-blocks = [Block(i, int(b.split()[0]), int(b.split()[1]), int(b.split()[2])) for i, b in enumerate(lines)]
-
-blocks.sort(key=lambda b: b.deadline)
-
-solution = []
-
-def pickBestBlock(blocks, currentTime, currentProd):
-    bestArea = 0
-    bestId = None
-    for b in blocks:
-        # if currentTime + b.base > b.deadline:
-        #     print("exiting search")
-        #     break
-        if b.height <= currentProd:
-            area = b.base * b.height
-            if area > bestArea:
-                bestId = b.id
     
-    if (bestId is not None):
-        return [b for b in blocks if b.id == bestId][0]
-    return None
+def loadInput(inputPath):
+    with open(inputPath) as file:
+        productionCurve = list(map(int, file.readline().strip().split()))
+        lines = [line.rstrip() for line in file]
+        blocks = [Block(i, int(b.split()[0]), int(b.split()[1]), int(b.split()[2])) for i, b in enumerate(lines)]
+    return productionCurve, blocks
 
+def writeOutput(outputPath,taskIds: list[Block], prod):
+    with open(outputPath, "w") as f:
+        f.write("\n".join(str(task.id) if task != None else "" for task in taskIds))
+        
+        print(len(taskIds))
+        print(len(prod))
 
-for i, value in enumerate(curve):
-    selectedBlock = pickBestBlock(blocks, i, value)
-    solution.append(selectedBlock)
-    if selectedBlock is not None:
-        blocks = [b for b in blocks if b.id != selectedBlock.id]
+        for i in range(len(taskIds),len(prod)):
+            f.write("\n")    
+         
+                
+def simpleSort(blockA: Block):
+    return blockA.deadline
 
-outputFile = open("output-generated.txt", "w")
-for b in solution:
-    if b is None:
-        outputFile.write("\n")
-    else:
-        outputFile.write(str(b.id) + "\n")
-outputFile.close()
+def simpleSorting(production, blocks: list[Block]):
+    allocatedBlocks: list[Block] = []
+    consumed = [0 for _ in range(len(production))]
+
+    for i in range(len(production)):
+        selectedBlock:Block = None
+        for block in blocks:
+            if block.deadline <= i + block.runtime:
+                blocks.remove(block)
+                continue
+
+            if block.cost + consumed[i] < production[i]:
+                selectedBlock = block
+                break
+
+        allocatedBlocks.append(selectedBlock)
+
+        if selectedBlock == None:
+            continue
+
+        # print(i)
+        # print(f"cost: {selectedBlock.cost}")
+        # print(f"duration: {selectedBlock.runtime}")
+        # print(f"consumo: {consumed[i]}")
+        # print(f"production: {production[i]}")
+        # print()
+
+        for j in range(i, i + blocks[0].runtime):
+            if j > len(consumed) - 1:
+                break
+            consumed[j] += blocks[0].cost
+
+        blocks.remove(blocks[0])
+    return allocatedBlocks    
+
+    
+if __name__ == '__main__':
+    inputPath = sys.argv[1]
+    outputPath = sys.argv[2]
+
+    production, tasks = loadInput(inputPath)
+
+    tasks.sort(key=lambda t: t.deadline)
+    tasks = simpleSorting(production, tasks)
+
+    tasks = tasks[:len(production)]
+    writeOutput(outputPath, tasks, production)

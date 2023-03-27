@@ -1,64 +1,101 @@
 import sys
 from Block import Block
-    
+
+DEBUG = False
+
 def loadInput(inputPath):
+    lines: list[str] = []
+    blocks: list[Block] = []
+
     with open(inputPath) as file:
-        productionCurve = list(map(int, file.readline().strip().split()))
-        lines = [line.rstrip() for line in file]
-        blocks = [Block(i, int(b.split()[0]), int(b.split()[1]), int(b.split()[2])) for i, b in enumerate(lines)]
+        lines = file.readlines()
+
+    productionCurve = list(map(int, lines[0].split(" ")))
+    lines.pop(0)
+
+    for i in range(len(lines)):
+        data = lines[i].split()
+
+        runtime = data[0]
+        cost = data[1]
+        deadline = data[2]
+        blocks.append(
+            Block(
+                i,
+                int(runtime),
+                int(cost),
+                int(deadline),
+            )
+        )
+
     return productionCurve, blocks
 
-def writeOutput(outputPath,taskIds: list[Block], prod):
+
+def writeOutput(outputPath, tasksIds: list[list[Block]], prod):
+    lines: list[str] = []
+
     with open(outputPath, "w") as f:
-        f.write("\n".join(str(task.id) if task != None else "" for task in taskIds))
-        
-        print(len(taskIds))
-        print(len(prod))
+        for tasks in tasksIds:
+            line = ""
 
-        for i in range(len(taskIds),len(prod)):
-            f.write("\n")    
-         
-                
-def simpleSort(blockA: Block):
-    return blockA.deadline
+            line = " ".join(str(task.id) for task in tasks)
+            lines.append(line)
 
-def simpleSorting(production, blocks: list[Block]):
-    allocatedBlocks: list[Block] = []
-    consumed = [0 for _ in range(len(production))]
+        f.write("\n".join(lines))
+
+
+def createLog(
+    id: int,
+    consumption: int,
+    production: int,
+):
+    msg: list[int] = []
+    msg.append(id)
+    msg.append(consumption)
+    msg.append(production)
+
+    return " ".join(map(lambda msg: str(msg), msg))
+
+
+def simpleSorting(production, blocks: list[Block]) -> list[list[Block]]:
+    allocatedBlocks: list[list[Block]] = []
+    consumption = [0 for _ in range(len(production))]
 
     for i in range(len(production)):
-        selectedBlock:Block = None
+        selectedBlocks: list[Block] = []
+
         for block in blocks:
             if block.deadline <= i + block.runtime:
                 blocks.remove(block)
                 continue
 
-            if block.cost + consumed[i] < production[i]:
-                selectedBlock = block
-                break
+            if i + block.runtime > len(production):
+                blocks.remove(block)
+                continue
 
-        allocatedBlocks.append(selectedBlock)
+            if block.cost + consumption[0] < production[i]:
+                selectedBlocks.append(block)
+                blocks.remove(block)
 
-        if selectedBlock == None:
-            continue
+                for j in range(selectedBlocks[-1].runtime):
+                    consumption[j] += selectedBlocks[-1].cost
 
-        # print(i)
-        # print(f"cost: {selectedBlock.cost}")
-        # print(f"duration: {selectedBlock.runtime}")
-        # print(f"consumo: {consumed[i]}")
-        # print(f"production: {production[i]}")
-        # print()
+        if DEBUG:
+            print(
+                createLog(
+                    i,
+                    consumption[0],
+                    production[i],
+                )
+            )
 
-        for j in range(i, i + blocks[0].runtime):
-            if j > len(consumed) - 1:
-                break
-            consumed[j] += blocks[0].cost
+        allocatedBlocks.append(selectedBlocks)
+        consumption.pop(0)
 
-        blocks.remove(blocks[0])
-    return allocatedBlocks    
+    return allocatedBlocks
 
-    
-if __name__ == '__main__':
+
+if __name__ == "__main__":
     inputPath = sys.argv[1]
     outputPath = sys.argv[2]
 
@@ -67,5 +104,4 @@ if __name__ == '__main__':
     tasks.sort(key=lambda t: t.deadline)
     tasks = simpleSorting(production, tasks)
 
-    tasks = tasks[:len(production)]
     writeOutput(outputPath, tasks, production)

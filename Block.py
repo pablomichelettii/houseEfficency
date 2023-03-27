@@ -4,7 +4,6 @@ class Block:
         self.id = id
         self.cost: int = cost
         self.deadline: int = deadline
-        
-    def __str__(self):
-     return "Block id: " + self.id + " ,runtime: " + self.runtime + ", cost: " + self.cost + " ,deadline: " + self.deadline
 
+    def __str__(self):
+        return f"Block id: {self.id}, runtime: {self.runtime}, cost: {self.cost}, deadline: {self.deadline}"
